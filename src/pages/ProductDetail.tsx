@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
-import { products } from '@/data/products';
+import { useProduct } from '@/hooks/useProducts';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,29 @@ import { Badge } from '@/components/ui/badge';
 const ProductDetail = () => {
   const { id } = useParams();
   const { addToCart } = useCart();
-  const product = products.find(p => p.id === id);
+  const { data: product, isLoading } = useProduct(id!);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-1 py-12">
+          <div className="container">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+              <div className="aspect-square bg-muted animate-pulse rounded-2xl" />
+              <div className="space-y-6">
+                <div className="h-8 bg-muted animate-pulse rounded w-1/4" />
+                <div className="h-12 bg-muted animate-pulse rounded w-3/4" />
+                <div className="h-8 bg-muted animate-pulse rounded w-1/4" />
+                <div className="h-32 bg-muted animate-pulse rounded" />
+              </div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!product) {
     return (
