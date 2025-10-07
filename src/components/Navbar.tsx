@@ -1,8 +1,16 @@
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Menu } from 'lucide-react';
+import { ShoppingCart, Menu, User, LogOut, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useState } from 'react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Sheet,
   SheetContent,
@@ -11,6 +19,7 @@ import {
 
 const Navbar = () => {
   const { getItemCount } = useCart();
+  const { user, isAdmin, signOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
   const navLinks = [
@@ -47,6 +56,37 @@ const Navbar = () => {
               )}
             </Button>
           </Link>
+
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <User className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {isAdmin && (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin" className="flex items-center cursor-pointer">
+                        <Shield className="mr-2 h-4 w-4" />
+                        Admin Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link to="/auth">
+              <Button>Sign In</Button>
+            </Link>
+          )}
         </div>
 
         {/* Mobile Navigation */}
@@ -68,6 +108,36 @@ const Navbar = () => {
                   {link.label}
                 </Link>
               ))}
+              
+              {user ? (
+                <>
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      onClick={() => setIsOpen(false)}
+                      className="text-lg font-medium text-foreground/80 hover:text-primary animation-smooth flex items-center"
+                    >
+                      <Shield className="mr-2 h-4 w-4" />
+                      Admin Dashboard
+                    </Link>
+                  )}
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      signOut();
+                      setIsOpen(false);
+                    }}
+                    className="justify-start"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <Link to="/auth" onClick={() => setIsOpen(false)}>
+                  <Button className="w-full">Sign In</Button>
+                </Link>
+              )}
             </div>
           </SheetContent>
         </Sheet>
