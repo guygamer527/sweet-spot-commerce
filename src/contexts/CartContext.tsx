@@ -11,8 +11,8 @@ interface CartContextType {
   addToCart: (product: Product) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
-  clearCart: () => void;
   getTotalPrice: () => number;
+  clearCart: () => void;
   getItemCount: () => number;
 }
 
@@ -73,8 +73,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         addToCart,
         removeFromCart,
         updateQuantity,
-        clearCart,
         getTotalPrice,
+        clearCart,
         getItemCount,
       }}
     >

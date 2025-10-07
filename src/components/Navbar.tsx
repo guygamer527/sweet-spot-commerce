@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Menu, User, LogOut, Shield } from 'lucide-react';
+import { ShoppingCart, Menu, User, LogOut, Shield, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -65,17 +65,24 @@ const Navbar = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link to="/orders" className="flex items-center cursor-pointer">
+                    <Package className="mr-2 h-4 w-4" />
+                    My Orders
+                  </Link>
+                </DropdownMenuItem>
                 {isAdmin && (
                   <>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link to="/admin" className="flex items-center cursor-pointer">
                         <Shield className="mr-2 h-4 w-4" />
                         Admin Dashboard
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
                   </>
                 )}
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />
                   Logout
@@ -111,6 +118,14 @@ const Navbar = () => {
               
               {user ? (
                 <>
+                  <Link
+                    to="/orders"
+                    onClick={() => setIsOpen(false)}
+                    className="text-lg font-medium text-foreground/80 hover:text-primary animation-smooth flex items-center"
+                  >
+                    <Package className="mr-2 h-4 w-4" />
+                    My Orders
+                  </Link>
                   {isAdmin && (
                     <Link
                       to="/admin"

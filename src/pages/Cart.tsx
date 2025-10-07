@@ -1,14 +1,111 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 const Cart = () => {
-  const { cart, removeFromCart, updateQuantity, getTotalPrice } = useCart();
+  const { cart, removeFromCart, updateQuantity, getTotalPrice, clearCart } = useCart();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [showCheckoutDialog, setShowCheckoutDialog] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [shippingForm, setShippingForm] = useState({
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+  });
+
+  const handleCheckout = () => {
+    if (!user) {
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in to complete your purchase.",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
+    setShowCheckoutDialog(true);
+  };
+
+  const processOrder = async () => {
+    if (!shippingForm.address || !shippingForm.city || !shippingForm.state || !shippingForm.zipCode) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all shipping details.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      // Create order
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert([{
+          user_id: user!.id,
+          total_amount: getTotalPrice(),
+          status: 'pending',
+          payment_status: 'pending',
+          payment_method: 'card',
+          shipping_address: shippingForm,
+        }])
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      // Create order items
+      const orderItems = cart.map(item => ({
+        order_id: order.id,
+        product_id: item.id,
+        quantity: item.quantity,
+        price: item.price,
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems);
+
+      if (itemsError) throw itemsError;
+
+      toast({
+        title: "Order Placed!",
+        description: "Your order has been successfully placed.",
+      });
+
+      clearCart();
+      setShowCheckoutDialog(false);
+      navigate('/orders');
+    } catch (error) {
+      console.error('Order error:', error);
+      toast({
+        title: "Order Failed",
+        description: "There was an error processing your order. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   if (cart.length === 0) {
     return (
@@ -123,7 +220,7 @@ const Cart = () => {
                   </div>
                 </div>
 
-                <Button className="w-full" size="lg">
+                <Button className="w-full" size="lg" onClick={handleCheckout}>
                   Proceed to Checkout
                 </Button>
 
@@ -139,6 +236,81 @@ const Cart = () => {
       </main>
 
       <Footer />
+
+      {/* Checkout Dialog */}
+      <Dialog open={showCheckoutDialog} onOpenChange={setShowCheckoutDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Complete Your Order</DialogTitle>
+            <DialogDescription>
+              Enter your shipping details to complete the purchase.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="address">Street Address</Label>
+              <Input
+                id="address"
+                placeholder="123 Main St"
+                value={shippingForm.address}
+                onChange={(e) => setShippingForm({ ...shippingForm, address: e.target.value })}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="city">City</Label>
+                <Input
+                  id="city"
+                  placeholder="New York"
+                  value={shippingForm.city}
+                  onChange={(e) => setShippingForm({ ...shippingForm, city: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="state">State</Label>
+                <Input
+                  id="state"
+                  placeholder="NY"
+                  value={shippingForm.state}
+                  onChange={(e) => setShippingForm({ ...shippingForm, state: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="zipCode">ZIP Code</Label>
+              <Input
+                id="zipCode"
+                placeholder="10001"
+                value={shippingForm.zipCode}
+                onChange={(e) => setShippingForm({ ...shippingForm, zipCode: e.target.value })}
+              />
+            </div>
+
+            <div className="pt-4 border-t space-y-2">
+              <div className="flex justify-between text-lg font-semibold">
+                <span>Total</span>
+                <span className="text-primary">${getTotalPrice().toFixed(2)}</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Payment will be processed upon delivery
+              </p>
+            </div>
+
+            <Button 
+              className="w-full" 
+              size="lg" 
+              onClick={processOrder}
+              disabled={isProcessing}
+            >
+              {isProcessing ? 'Processing...' : 'Place Order'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
