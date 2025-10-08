@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import OrderDetailsDialog from '@/components/OrderDetailsDialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +24,8 @@ const Admin = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [showOrderDialog, setShowOrderDialog] = useState(false);
   const [productForm, setProductForm] = useState({
     name: '',
     description: '',
@@ -214,6 +217,11 @@ const Admin = () => {
       });
       fetchOrders();
     }
+  };
+
+  const handleViewOrder = (order: any) => {
+    setSelectedOrder(order);
+    setShowOrderDialog(true);
   };
 
   if (loading || isLoadingData) {
@@ -461,7 +469,13 @@ const Admin = () => {
                           </TableCell>
                           <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
                           <TableCell>
-                            <Button variant="outline" size="sm">View Details</Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleViewOrder(order)}
+                            >
+                              View Details
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -475,6 +489,12 @@ const Admin = () => {
       </main>
 
       <Footer />
+      
+      <OrderDetailsDialog
+        open={showOrderDialog}
+        onOpenChange={setShowOrderDialog}
+        order={selectedOrder}
+      />
     </div>
   );
 };

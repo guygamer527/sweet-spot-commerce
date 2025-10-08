@@ -20,11 +20,10 @@ import {
 } from '@/components/ui/dialog';
 
 const Cart = () => {
-  const { cart, removeFromCart, updateQuantity, getTotalPrice, clearCart } = useCart();
+  const { cart, removeFromCart, updateQuantity, getTotalPrice } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showCheckoutDialog, setShowCheckoutDialog] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [shippingForm, setShippingForm] = useState({
     address: '',
     city: '',
@@ -45,7 +44,7 @@ const Cart = () => {
     setShowCheckoutDialog(true);
   };
 
-  const processOrder = async () => {
+  const processOrder = () => {
     if (!shippingForm.address || !shippingForm.city || !shippingForm.state || !shippingForm.zipCode) {
       toast({
         title: "Missing Information",
@@ -55,56 +54,8 @@ const Cart = () => {
       return;
     }
 
-    setIsProcessing(true);
-    try {
-      // Create order
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert([{
-          user_id: user!.id,
-          total_amount: getTotalPrice(),
-          status: 'pending',
-          payment_status: 'pending',
-          payment_method: 'card',
-          shipping_address: shippingForm,
-        }])
-        .select()
-        .single();
-
-      if (orderError) throw orderError;
-
-      // Create order items
-      const orderItems = cart.map(item => ({
-        order_id: order.id,
-        product_id: item.id,
-        quantity: item.quantity,
-        price: item.price,
-      }));
-
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
-
-      if (itemsError) throw itemsError;
-
-      toast({
-        title: "Order Placed!",
-        description: "Your order has been successfully placed.",
-      });
-
-      clearCart();
-      setShowCheckoutDialog(false);
-      navigate('/orders');
-    } catch (error) {
-      console.error('Order error:', error);
-      toast({
-        title: "Order Failed",
-        description: "There was an error processing your order. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
+    setShowCheckoutDialog(false);
+    navigate('/payment', { state: { shippingData: shippingForm } });
   };
 
   if (cart.length === 0) {
@@ -295,18 +246,14 @@ const Cart = () => {
                 <span>Total</span>
                 <span className="text-primary">${getTotalPrice().toFixed(2)}</span>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Payment will be processed upon delivery
-              </p>
             </div>
 
             <Button 
               className="w-full" 
               size="lg" 
               onClick={processOrder}
-              disabled={isProcessing}
             >
-              {isProcessing ? 'Processing...' : 'Place Order'}
+              Continue to Payment
             </Button>
           </div>
         </DialogContent>
