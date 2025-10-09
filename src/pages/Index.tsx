@@ -1,6 +1,8 @@
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
 import FeaturedProducts from '@/components/FeaturedProducts';
+import Testimonials from '@/components/Testimonials';
+import CustomCake from '@/components/CustomCake';
 import Footer from '@/components/Footer';
 
 const Index = () => {
@@ -9,6 +11,8 @@ const Index = () => {
       <Navbar />
       <Hero />
       <FeaturedProducts />
+      <CustomCake />
+      <Testimonials />
       <Footer />
     </div>
   );

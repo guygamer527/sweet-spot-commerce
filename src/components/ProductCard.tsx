@@ -13,31 +13,32 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const { addToCart } = useCart();
 
   return (
-    <Card className="group overflow-hidden hover-lift">
+    <Card className="group overflow-hidden hover-lift shadow-soft border-0 bg-white dark:bg-card">
       <Link to={`/product/${product.id}`}>
-        <div className="aspect-square overflow-hidden bg-muted">
+        <div className="aspect-square overflow-hidden bg-muted/30">
           <img
             src={product.image}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 animation-smooth"
+            className="w-full h-full object-cover group-hover:scale-110 animation-smooth"
           />
         </div>
       </Link>
-      <CardContent className="p-4">
+      <CardContent className="p-6">
         <Link to={`/product/${product.id}`}>
-          <h3 className="font-semibold text-lg mb-1 group-hover:text-primary animation-smooth">
+          <h3 className="font-semibold text-xl mb-2 group-hover:text-primary animation-smooth">
             {product.name}
           </h3>
         </Link>
-        <p className="text-sm text-muted-foreground mb-2">{product.category}</p>
-        <p className="text-lg font-bold text-primary">${product.price.toFixed(2)}</p>
+        <p className="text-sm text-muted-foreground mb-3 capitalize">{product.category}</p>
+        <p className="text-2xl font-bold text-primary">${product.price.toFixed(2)}</p>
       </CardContent>
-      <CardFooter className="p-4 pt-0">
+      <CardFooter className="p-6 pt-0">
         <Button
           onClick={() => addToCart(product)}
-          className="w-full group"
+          className="w-full group shadow-soft"
+          size="lg"
         >
-          <ShoppingCart className="mr-2 h-4 w-4 group-hover:scale-110 animation-smooth" />
+          <ShoppingCart className="mr-2 h-5 w-5 group-hover:scale-110 animation-smooth" />
           Add to Cart
         </Button>
       </CardFooter>

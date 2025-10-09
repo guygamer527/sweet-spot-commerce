@@ -8,33 +8,38 @@ const FeaturedProducts = () => {
   const { data: products, isLoading } = useFeaturedProducts();
 
   return (
-    <section className="py-16 bg-background">
+    <section className="py-20 bg-background">
       <div className="container">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-2">Featured Products</h2>
-            <p className="text-muted-foreground">Our most popular baked goods</p>
-          </div>
-          <Link to="/products">
-            <Button variant="outline" className="group">
-              View All
-              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 animation-smooth" />
-            </Button>
-          </Link>
+        <div className="text-center mb-12">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">Our Signature Collection</h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Handpicked favorites that our customers love the most
+          </p>
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-96 bg-muted animate-pulse rounded-lg" />
+              <div key={i} className="h-96 bg-muted/30 animate-pulse rounded-2xl" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products?.map(product => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+              {products?.map(product => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+            
+            <div className="text-center">
+              <Link to="/products">
+                <Button size="lg" variant="outline" className="group shadow-soft">
+                  View Complete Menu
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 animation-smooth" />
+                </Button>
+              </Link>
+            </div>
+          </>
         )}
       </div>
     </section>
