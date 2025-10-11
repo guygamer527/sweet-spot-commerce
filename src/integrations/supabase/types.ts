@@ -41,6 +41,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_order_items_order_id_orders"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_order_items_product_id_products"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "order_items_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
@@ -90,7 +104,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_orders_user_id_profiles"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       products: {
         Row: {
