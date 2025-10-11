@@ -73,26 +73,48 @@ const Admin = () => {
   };
 
   const fetchOrders = async () => {
-    const { data, error } = await supabase
+    // Fetch orders with items and products first (no profiles to avoid FK hint issues)
+    const { data: ordersData, error: ordersError } = await supabase
       .from('orders')
       .select(`
         *,
-        profiles!fk_orders_user_id_profiles (email, full_name),
         order_items (*, products (*))
       `)
       .order('created_at', { ascending: false });
 
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch orders",
-        variant: "destructive",
-      });
-    } else {
-      setOrders(data || []);
+    if (ordersError) {
+      console.error('Orders fetch error:', ordersError);
+      toast({ title: 'Error', description: 'Failed to fetch orders', variant: 'destructive' });
+      return;
     }
-  };
 
+    const ordersList = ordersData || [];
+
+    // Batch fetch customer profiles for the orders
+    const userIds = Array.from(new Set(ordersList.map((o: any) => o.user_id).filter(Boolean)));
+    let profilesById: Record<string, any> = {};
+
+    if (userIds.length > 0) {
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, email, full_name')
+        .in('id', userIds);
+
+      if (profilesError) {
+        console.error('Profiles fetch error:', profilesError);
+        // Continue without profiles if this fails
+      } else {
+        profilesById = (profilesData || []).reduce((acc: any, p: any) => {
+          acc[p.id] = p;
+          return acc;
+        }, {});
+      }
+    }
+
+    // Attach profile to each order (same shape as embedded result: order.profiles)
+    const merged = ordersList.map((o: any) => ({ ...o, profiles: profilesById[o.user_id] || null }));
+    setOrders(merged);
+  };
   const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
