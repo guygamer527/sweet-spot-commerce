@@ -73,13 +73,10 @@ const Admin = () => {
   };
 
   const fetchOrders = async () => {
-    // Fetch orders with items and products first (no profiles to avoid FK hint issues)
+    // 1) Fetch orders only (no embeddings to avoid ambiguous FKs)
     const { data: ordersData, error: ordersError } = await supabase
       .from('orders')
-      .select(`
-        *,
-        order_items (*, products (*))
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
 
     if (ordersError) {
@@ -89,11 +86,53 @@ const Admin = () => {
     }
 
     const ordersList = ordersData || [];
+    if (ordersList.length === 0) {
+      setOrders([]);
+      return;
+    }
 
-    // Batch fetch customer profiles for the orders
+    // 2) Fetch order items for these orders (no embeddings)
+    const orderIds = ordersList.map((o: any) => o.id);
+    const { data: itemsData, error: itemsError } = await supabase
+      .from('order_items')
+      .select('*')
+      .in('order_id', orderIds);
+
+    if (itemsError) {
+      console.error('Order items fetch error:', itemsError);
+      toast({ title: 'Error', description: 'Failed to fetch order items', variant: 'destructive' });
+    }
+
+    const items = itemsData || [];
+
+    // 3) Fetch products used by these items (for details in dialog)
+    const productIds = Array.from(new Set(items.map((i: any) => i.product_id).filter(Boolean)));
+    let productsById: Record<string, any> = {};
+    if (productIds.length > 0) {
+      const { data: productsData, error: productsError } = await supabase
+        .from('products')
+        .select('id, name, price, image');
+
+      if (productsError) {
+        console.error('Products fetch error:', productsError);
+      } else {
+        productsById = (productsData || []).reduce((acc: any, p: any) => {
+          acc[p.id] = p;
+          return acc;
+        }, {});
+      }
+    }
+
+    // Group items by order_id and attach product details
+    const itemsByOrderId: Record<string, any[]> = {};
+    for (const it of items) {
+      const withProduct = { ...it, products: productsById[it.product_id] || null };
+      (itemsByOrderId[it.order_id] ||= []).push(withProduct);
+    }
+
+    // 4) Batch fetch customer profiles for the orders
     const userIds = Array.from(new Set(ordersList.map((o: any) => o.user_id).filter(Boolean)));
     let profilesById: Record<string, any> = {};
-
     if (userIds.length > 0) {
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
@@ -111,8 +150,13 @@ const Admin = () => {
       }
     }
 
-    // Attach profile to each order (same shape as embedded result: order.profiles)
-    const merged = ordersList.map((o: any) => ({ ...o, profiles: profilesById[o.user_id] || null }));
+    // 5) Merge everything
+    const merged = ordersList.map((o: any) => ({
+      ...o,
+      profiles: profilesById[o.user_id] || null,
+      order_items: itemsByOrderId[o.id] || [],
+    }));
+
     setOrders(merged);
   };
   const handleProductSubmit = async (e: React.FormEvent) => {
