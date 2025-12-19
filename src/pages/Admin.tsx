@@ -136,7 +136,7 @@ const Admin = () => {
     if (userIds.length > 0) {
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, email, full_name')
+        .select('id, email, full_name, phone')
         .in('id', userIds);
 
       if (profilesError) {

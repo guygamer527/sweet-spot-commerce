@@ -25,6 +25,8 @@ const Cart = () => {
   const navigate = useNavigate();
   const [showCheckoutDialog, setShowCheckoutDialog] = useState(false);
   const [shippingForm, setShippingForm] = useState({
+    fullName: '',
+    phone: '',
     address: '',
     city: '',
     state: '',
@@ -45,10 +47,10 @@ const Cart = () => {
   };
 
   const processOrder = () => {
-    if (!shippingForm.address || !shippingForm.city || !shippingForm.state || !shippingForm.zipCode) {
+    if (!shippingForm.fullName || !shippingForm.phone || !shippingForm.address || !shippingForm.city || !shippingForm.state || !shippingForm.zipCode) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all shipping details.",
+        description: "Please fill in all shipping details including name and phone.",
         variant: "destructive",
       });
       return;
@@ -199,8 +201,30 @@ const Cart = () => {
           </DialogHeader>
           
           <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Full Name *</Label>
+                <Input
+                  id="fullName"
+                  placeholder="John Doe"
+                  value={shippingForm.fullName}
+                  onChange={(e) => setShippingForm({ ...shippingForm, fullName: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number *</Label>
+                <Input
+                  id="phone"
+                  placeholder="+1 234 567 8900"
+                  value={shippingForm.phone}
+                  onChange={(e) => setShippingForm({ ...shippingForm, phone: e.target.value })}
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="address">Street Address</Label>
+              <Label htmlFor="address">Street Address *</Label>
               <Input
                 id="address"
                 placeholder="123 Main St"
@@ -211,7 +235,7 @@ const Cart = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
+                <Label htmlFor="city">City *</Label>
                 <Input
                   id="city"
                   placeholder="New York"
@@ -221,7 +245,7 @@ const Cart = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="state">State</Label>
+                <Label htmlFor="state">State *</Label>
                 <Input
                   id="state"
                   placeholder="NY"
@@ -232,7 +256,7 @@ const Cart = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="zipCode">ZIP Code</Label>
+              <Label htmlFor="zipCode">ZIP Code *</Label>
               <Input
                 id="zipCode"
                 placeholder="10001"

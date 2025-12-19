@@ -235,11 +235,13 @@ const Payment = () => {
                 </div>
 
                 <div className="bg-muted/50 p-4 rounded-lg mb-6">
-                  <p className="text-sm font-medium mb-2">Shipping Address:</p>
-                  <p className="text-sm text-muted-foreground">
-                    {shippingData.address}<br />
-                    {shippingData.city}, {shippingData.state} {shippingData.zipCode}
-                  </p>
+                  <p className="text-sm font-medium mb-2">Delivery Details:</p>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <p className="font-medium text-foreground">{shippingData.fullName}</p>
+                    <p>{shippingData.phone}</p>
+                    <p>{shippingData.address}</p>
+                    <p>{shippingData.city}, {shippingData.state} {shippingData.zipCode}</p>
+                  </div>
                 </div>
 
                 <Button 
