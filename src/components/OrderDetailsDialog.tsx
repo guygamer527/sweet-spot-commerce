@@ -7,6 +7,8 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Card } from '@/components/ui/card';
+import { User, Phone, Mail, MapPin, Truck } from 'lucide-react';
 
 interface OrderDetailsDialogProps {
   open: boolean;
@@ -17,42 +19,67 @@ interface OrderDetailsDialogProps {
 const OrderDetailsDialog = ({ open, onOpenChange, order }: OrderDetailsDialogProps) => {
   if (!order) return null;
 
+  const shippingAddress = order.shipping_address;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Order Details</DialogTitle>
           <DialogDescription>
-            Order ID: {order.id}
+            Order ID: {order.id?.slice(0, 8)}...
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Customer Information */}
-          <div>
-            <h3 className="font-semibold mb-2">Customer Information</h3>
-            <div className="space-y-1 text-sm">
-              <p><span className="text-muted-foreground">Name:</span> {order.profiles?.full_name || 'N/A'}</p>
-              <p><span className="text-muted-foreground">Email:</span> {order.profiles?.email}</p>
+          {/* Customer & Delivery Information */}
+          <Card className="p-4 bg-muted/30">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <Truck className="h-4 w-4" />
+              Delivery Information
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <div className="flex items-start gap-2">
+                  <User className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Customer Name</p>
+                    <p className="font-medium">{shippingAddress?.fullName || order.profiles?.full_name || 'N/A'}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Phone className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Phone Number</p>
+                    <p className="font-medium">{shippingAddress?.phone || order.profiles?.phone || 'N/A'}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Mail className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Email</p>
+                    <p className="font-medium">{order.profiles?.email || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-start gap-2">
+                  <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Delivery Address</p>
+                    {shippingAddress ? (
+                      <div className="font-medium">
+                        <p>{shippingAddress.address}</p>
+                        <p>{shippingAddress.city}, {shippingAddress.state} {shippingAddress.zipCode}</p>
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground">No address provided</p>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-
-          <Separator />
-
-          {/* Shipping Address */}
-          <div>
-            <h3 className="font-semibold mb-2">Shipping Address</h3>
-            <div className="text-sm">
-              {order.shipping_address ? (
-                <>
-                  <p>{order.shipping_address.address}</p>
-                  <p>{order.shipping_address.city}, {order.shipping_address.state} {order.shipping_address.zipCode}</p>
-                </>
-              ) : (
-                <p className="text-muted-foreground">No address provided</p>
-              )}
-            </div>
-          </div>
+          </Card>
 
           <Separator />
 
